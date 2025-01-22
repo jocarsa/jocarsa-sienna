@@ -7,7 +7,7 @@
     <meta charset="UTF-8" />
     <title>jocarsa | sienna</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-    <script src="https://unpkg.com/aframe-physics-system-fork/dist/aframe-physics-system.min.js"></script>
+
     
     <style>
     	<?php include "estilo/estilo.css"?>
@@ -47,10 +47,10 @@
 
       <a-entity
         id="player"
-        dynamic-body="mass: 5; shape: box;"
         position="0 1 0"
         wasd-controls
         look-controls
+        simple-gravity
       >
         <a-entity id="camera" camera>
           <a-cursor
