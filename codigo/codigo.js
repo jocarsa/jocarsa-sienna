@@ -146,15 +146,15 @@
 	// Initialize memoria from localStorage or new
 	if (localStorage.getItem("memoria") == null) {
 	  console.log("No hay memoria previa, cargo una nueva");
-	  const gridSize = 5;
+	  const gridSize = 15;
 	  for (let x = -gridSize; x <= gridSize; x++) {
 		 for (let z = -gridSize; z <= gridSize; z++) {
-		   for (let y = -5; y <= 0; y++) {
+		   for (let y = -2; y <= 0; y++) {
 		     memoria.push({
 		       x: x,
 		       y: y,
 		       z: z,
-		       mat: Math.ceil(Math.random() * 3)
+		       mat: css3Colors[Math.round(Math.random()*css3Colors.length)]
 		     });
 		   }
 		 }

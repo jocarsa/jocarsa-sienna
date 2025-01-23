@@ -7,6 +7,7 @@
     <meta charset="UTF-8" />
     <title>jocarsa | sienna</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+    <script src="lib/colores.js"></script>
 	
 	<script>
       window.addEventListener("contextmenu", function (e) {
