@@ -5,6 +5,8 @@
 
 // === Global Parameters ===
 const BOX_SIZE = 0.2; // Define the size of the box (width, height, depth)
+const SPHERE_RADIUS = 3; // Radius for the sphere of boxes
+const GAUSSIAN_SIGMA = 1; // Standard deviation for Gaussian distribution
 
 let memoria = [];
 
@@ -120,6 +122,12 @@ function updateChunks(playerPosition) {
   }
 }
 
+// === Gaussian Distribution Function ===
+function gaussian(x, y, z, sigma) {
+  const exponent = -(x * x + y * y + z * z) / (2 * sigma * sigma);
+  return Math.exp(exponent);
+}
+
 // === 1) SIMPLE GRAVITY COMPONENT (NO PHYSICS SYSTEM) ===
 AFRAME.registerComponent("simple-gravity", {
   schema: {
@@ -203,10 +211,7 @@ function createBox(position, id, material) {
     // LEFT-CLICK -> remove block
     if (mouseEvent.button === 0) {
       console.log("Left-click remove on:", caja);
-      caja.parentNode.removeChild(caja);
-      // Remove from memoria
-      memoria = memoria.filter((block) => block.id !== id);
-      localStorage.setItem("memoria", JSON.stringify(memoria));
+      removeSphereOfBoxes(evt.detail.intersection.point);
     }
     // RIGHT-CLICK -> create new block adjacent
     else if (mouseEvent.button === 2) {
@@ -214,45 +219,82 @@ function createBox(position, id, material) {
       console.log(elementos[repositorioactivo].style.background);
 
       console.log("Right-click add block near:", caja);
-      const intersection = evt.detail.intersection;
-      if (!intersection) return;
-
-      // Intersection point and normal
-      const point = intersection.point.clone();
-      const normal = intersection.face.normal.clone();
-
-      // Move half a unit along the normal from the exact face contact
-      // This ensures the new block is adjacent to the face clicked
-      normal.multiplyScalar(BOX_SIZE / 2); // Adjust for BOX_SIZE
-      point.add(normal);
-
-      // Snap to grid based on BOX_SIZE
-      const newPos = {
-        x: Math.round(point.x / BOX_SIZE) * BOX_SIZE,
-        y: Math.round(point.y / BOX_SIZE) * BOX_SIZE,
-        z: Math.round(point.z / BOX_SIZE) * BOX_SIZE,
-      };
-      const usuario = localStorage.getItem("siennausuario");
-      // Create random material
-      const newMat = elementos[repositorioactivo].style.background;
-
-      // Actually create & add
-      createBox(`${newPos.x} ${newPos.y} ${newPos.z}`, memoria.length, newMat);
-
-      // Store in memory
-      memoria.push({
-        id: memoria.length,
-        usuario: usuario,
-        x: newPos.x / BOX_SIZE, // Store grid position, not world position
-        y: newPos.y / BOX_SIZE,
-        z: newPos.z / BOX_SIZE,
-        mat: newMat,
-      });
-      localStorage.setItem("memoria", JSON.stringify(memoria));
+      createSphereOfBoxes(evt.detail.intersection.point, elementos[repositorioactivo].style.background);
     }
   });
 
   sceneEl.appendChild(caja);
+}
+
+// Function to create a sphere of boxes
+function createSphereOfBoxes(centerPoint, material) {
+  for (let dx = -SPHERE_RADIUS; dx <= SPHERE_RADIUS; dx++) {
+    for (let dy = -SPHERE_RADIUS; dy <= SPHERE_RADIUS; dy++) {
+      for (let dz = -SPHERE_RADIUS; dz <= SPHERE_RADIUS; dz++) {
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (distance > SPHERE_RADIUS) continue; // Skip points outside the sphere
+
+        // Calculate position
+        const newPos = {
+          x: Math.round(centerPoint.x / BOX_SIZE) * BOX_SIZE + dx * BOX_SIZE,
+          y: Math.round(centerPoint.y / BOX_SIZE) * BOX_SIZE + dy * BOX_SIZE,
+          z: Math.round(centerPoint.z / BOX_SIZE) * BOX_SIZE + dz * BOX_SIZE,
+        };
+
+        // Check if a box already exists at this position
+        const blockId = `${newPos.x} ${newPos.y} ${newPos.z}`;
+        const existingBlock = document.querySelector(`[identificador="${blockId}"]`);
+        if (existingBlock) continue; // Skip if a block already exists
+
+        // Create new box
+        createBox(`${newPos.x} ${newPos.y} ${newPos.z}`, memoria.length, material);
+
+        // Store in memory
+        memoria.push({
+          id: memoria.length,
+          x: newPos.x / BOX_SIZE,
+          y: newPos.y / BOX_SIZE,
+          z: newPos.z / BOX_SIZE,
+          mat: material,
+        });
+        localStorage.setItem("memoria", JSON.stringify(memoria));
+      }
+    }
+  }
+}
+
+// Function to remove a sphere of boxes
+function removeSphereOfBoxes(centerPoint) {
+  for (let dx = -SPHERE_RADIUS; dx <= SPHERE_RADIUS; dx++) {
+    for (let dy = -SPHERE_RADIUS; dy <= SPHERE_RADIUS; dy++) {
+      for (let dz = -SPHERE_RADIUS; dz <= SPHERE_RADIUS; dz++) {
+        const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
+        if (distance > SPHERE_RADIUS) continue; // Skip points outside the sphere
+
+        // Calculate position
+        const newPos = {
+          x: Math.round(centerPoint.x / BOX_SIZE) * BOX_SIZE + dx * BOX_SIZE,
+          y: Math.round(centerPoint.y / BOX_SIZE) * BOX_SIZE + dy * BOX_SIZE,
+          z: Math.round(centerPoint.z / BOX_SIZE) * BOX_SIZE + dz * BOX_SIZE,
+        };
+
+        // Find and remove the block
+        const blockId = `${newPos.x} ${newPos.y} ${newPos.z}`;
+        const blockElement = document.querySelector(`[identificador="${blockId}"]`);
+        if (blockElement) {
+          blockElement.parentNode.removeChild(blockElement);
+          console.log(`Removed block: ${blockId}`);
+
+          // Remove from memoria
+          memoria = memoria.filter((block) => {
+            const blockPos = `${block.x * BOX_SIZE} ${block.y * BOX_SIZE} ${block.z * BOX_SIZE}`;
+            return blockPos !== blockId;
+          });
+          localStorage.setItem("memoria", JSON.stringify(memoria));
+        }
+      }
+    }
+  }
 }
 
 // Initialize memoria from localStorage or new
