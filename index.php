@@ -23,7 +23,7 @@
     </style>
   </head>
   <body>
-    <div id="instruction">Click to enter VR / Engage Pointer Lock</div>
+    <div id="instruction">Click para entrar en el juego</div>
     <?php include "componentes/login/login.php"; ?>
 	 
     <a-scene 
