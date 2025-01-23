@@ -10,8 +10,8 @@ const instructionEl = document.getElementById("instruction");
 const playerEl = document.querySelector("#player");
 
 // === Chunk Management ===
-const CHUNK_SIZE = 4; // Size of each chunk (16x16 blocks)
-const LOAD_DISTANCE = 1; // Number of chunks to load around the player
+const CHUNK_SIZE = 8; // Size of each chunk (16x16 blocks)
+const LOAD_DISTANCE = 2; // Number of chunks to load around the player
 let loadedChunks = {};
 
 // Function to get chunk coordinates from world coordinates

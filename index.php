@@ -30,10 +30,8 @@
     shadow="type: pcfsoft" 
     physics="gravity: -9.8;"  
     fog="type: linear; color: #ffffff; near: 10; far: 50" 
-    postprocessing="enabled: true;">
-    <a-entity 
-    postprocessing-effect="type: SSAO; radius: 1; intensity: 5.0;"
-  ></a-entity>
+    >
+   <!--  -->
       <a-assets>
       <?php
       	include "lib/colores.php";
@@ -47,11 +45,13 @@
       	}
       ?>
         
-        
+       
+			 <img id="cielo" src="img/cielo.jpg">
+		 
       </a-assets>
 
 
-      <a-sky color="#ECECEC"></a-sky>
+      <a-sky src="#cielo" material="fog: false;"></a-sky>
 
       <a-entity
         light="type: directional; intensity: 1; castShadow: true"
@@ -69,7 +69,7 @@
         look-controls="pointerLockEnabled: true"
         simple-gravity
       >
-        <a-entity id="camera" camera="far: 100">
+        <a-entity id="camera" camera>
           <a-cursor
             id="cursor"
             fuse="false"
