@@ -8,6 +8,9 @@
     <title>jocarsa | sienna</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="lib/colores.js"></script>
+
+<script src="https://unpkg.com/aframe-postprocessing/dist/aframe-postprocessing.min.js"></script>
+
 	
 	<script>
       window.addEventListener("contextmenu", function (e) {
@@ -23,7 +26,14 @@
     <div id="instruction">Click to enter VR / Engage Pointer Lock</div>
     <?php include "componentes/login/login.php"; ?>
 	 
-    <a-scene shadow="type: pcfsoft" physics="gravity: -9.8;" >
+    <a-scene 
+    shadow="type: pcfsoft" 
+    physics="gravity: -9.8;"  
+    fog="type: linear; color: #ffffff; near: 1; far: 10" 
+    postprocessing="enabled: true;">
+    <a-entity 
+    postprocessing-effect="type: SSAO; radius: 1; intensity: 5.0;"
+  ></a-entity>
       <a-assets>
       <?php
       	include "lib/colores.php";
@@ -59,7 +69,7 @@
         look-controls="pointerLockEnabled: true"
         simple-gravity
       >
-        <a-entity id="camera" camera>
+        <a-entity id="camera" camera="far: 10">
           <a-cursor
             id="cursor"
             fuse="false"

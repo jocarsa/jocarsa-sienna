@@ -14,14 +14,16 @@
 	  schema: {
 		 enabled: { default: true },
 		 gravity: { type: "number", default: -9.8 },
-		 // how far below entity we check for ground
-		 raycastLength: { type: "number", default: 2 }
+		 raycastLength: { type: "number", default: 2 },
+		 groundThreshold: { type: "number", default: 1.01 }, // Distance to snap to ground
+		 smoothingFactor: { type: "number", default: 0.1 } // Smoothing for vertical movement
 	  },
 	  init: function () {
 		 this.velocityY = 0;
 		 this.direction = new THREE.Vector3(0, -1, 0);
 		 this.raycaster = new THREE.Raycaster();
 		 this.isGrounded = false;
+		 this.targetY = this.el.object3D.position.y; // Target Y position for smoothing
 	  },
 	  tick: function (time, timeDelta) {
 		 if (!this.data.enabled) return;
@@ -30,10 +32,9 @@
 		 const el = this.el;
 		 const pos = el.object3D.position;
 
-		 // 1) Raycast straight down from player's current position
+		 // Raycast to detect ground
 		 const origin = new THREE.Vector3(pos.x, pos.y, pos.z);
 		 this.raycaster.set(origin, this.direction);
-		 // We only want to intersect with blocks (class 'clickable')
 		 const clickableEls = document.querySelectorAll(".clickable");
 		 const meshList = [];
 		 clickableEls.forEach((cEl) => {
@@ -48,20 +49,19 @@
 		   groundDist = intersects[0].distance;
 		 }
 
-		 // 2) If we are close enough to ground, snap to it
-		 //    threshold = distance from center to feet ~0.5 if 1m tall
-		 const threshold = 1.01;
-		 if (groundDist < threshold && groundDist !== 0) {
+		 // Snap to ground if close enough
+		 if (groundDist < this.data.groundThreshold && groundDist !== 0) {
 		   this.isGrounded = true;
 		   this.velocityY = 0;
-		   // snap onto the block
-		   pos.y = pos.y - groundDist + threshold;
+		   this.targetY = pos.y - groundDist + this.data.groundThreshold; // Set target Y position
 		 } else {
-		   // 3) Not grounded -> apply gravity
 		   this.isGrounded = false;
-		   this.velocityY += this.data.gravity * delta; // v = v + g*dt
-		   pos.y += this.velocityY * delta; // y = y + v*dt
+		   this.velocityY += this.data.gravity * delta; // Apply gravity
+		   this.targetY += this.velocityY * delta; // Update target Y position
 		 }
+
+		 // Smoothly interpolate to the target Y position
+		 pos.y += (this.targetY - pos.y) * this.data.smoothingFactor;
 	  }
 	});
 
@@ -146,10 +146,10 @@
 	// Initialize memoria from localStorage or new
 	if (localStorage.getItem("memoria") == null) {
 	  console.log("No hay memoria previa, cargo una nueva");
-	  const gridSize = 15;
+	  const gridSize = 35;
 	  for (let x = -gridSize; x <= gridSize; x++) {
 		 for (let z = -gridSize; z <= gridSize; z++) {
-		   for (let y = -2; y <= 0; y++) {
+		   for (let y = -4; y <= 0; y++) {
 		     memoria.push({
 		       x: x,
 		       y: y,
