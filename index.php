@@ -29,7 +29,7 @@
     <a-scene 
     shadow="type: pcfsoft" 
     physics="gravity: -9.8;"  
-    fog="type: linear; color: #ffffff; near: 1; far: 10" 
+    fog="type: linear; color: #ffffff; near: 10; far: 50" 
     postprocessing="enabled: true;">
     <a-entity 
     postprocessing-effect="type: SSAO; radius: 1; intensity: 5.0;"
@@ -69,7 +69,7 @@
         look-controls="pointerLockEnabled: true"
         simple-gravity
       >
-        <a-entity id="camera" camera="far: 10">
+        <a-entity id="camera" camera="far: 100">
           <a-cursor
             id="cursor"
             fuse="false"

@@ -10,8 +10,8 @@ const instructionEl = document.getElementById("instruction");
 const playerEl = document.querySelector("#player");
 
 // === Chunk Management ===
-const CHUNK_SIZE = 16; // Size of each chunk (16x16 blocks)
-const LOAD_DISTANCE = 2; // Number of chunks to load around the player
+const CHUNK_SIZE = 4; // Size of each chunk (16x16 blocks)
+const LOAD_DISTANCE = 1; // Number of chunks to load around the player
 let loadedChunks = {};
 
 // Function to get chunk coordinates from world coordinates
@@ -28,18 +28,28 @@ function loadChunk(chunkX, chunkZ) {
   if (!loadedChunks[chunkKey]) {
     loadedChunks[chunkKey] = true;
     console.log(`Loading chunk: ${chunkKey}`);
-    // Create blocks for the chunk
-    for (let x = 0; x < CHUNK_SIZE; x++) {
-      for (let z = 0; z < CHUNK_SIZE; z++) {
-        const blockX = chunkX * CHUNK_SIZE + x;
-        const blockZ = chunkZ * CHUNK_SIZE + z;
-        // Check if the block already exists in memoria
-        const blockExists = memoria.some(
-          (block) => block.x === blockX && block.y === 0 && block.z === blockZ
-        );
-        if (!blockExists) {
+
+    // Check if the chunk exists in memoria
+    const chunkBlocks = memoria.filter((block) => {
+      const blockChunkX = Math.floor(block.x / CHUNK_SIZE);
+      const blockChunkZ = Math.floor(block.z / CHUNK_SIZE);
+      return blockChunkX === chunkX && blockChunkZ === chunkZ;
+    });
+
+    // If the chunk exists in memoria, restore it
+    if (chunkBlocks.length > 0) {
+      chunkBlocks.forEach((block) => {
+        createBox(`${block.x} ${block.y} ${block.z}`, block.id, block.mat);
+      });
+    } else {
+      // If the chunk doesn't exist in memoria, create new blocks
+      for (let x = 0; x < CHUNK_SIZE; x++) {
+        for (let z = 0; z < CHUNK_SIZE; z++) {
+          const blockX = chunkX * CHUNK_SIZE + x;
+          const blockZ = chunkZ * CHUNK_SIZE + z;
           createBox(`${blockX} 0 ${blockZ}`, memoria.length, "white");
           memoria.push({
+            id: memoria.length,
             x: blockX,
             y: 0,
             z: blockZ,
@@ -52,26 +62,35 @@ function loadChunk(chunkX, chunkZ) {
 }
 
 // Function to unload a chunk
+// Function to unload a chunk
 function unloadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
   if (loadedChunks[chunkKey]) {
     loadedChunks[chunkKey] = false;
     console.log(`Unloading chunk: ${chunkKey}`);
-    // Remove blocks for the chunk
-    for (let x = 0; x < CHUNK_SIZE; x++) {
-      for (let z = 0; z < CHUNK_SIZE; z++) {
-        const blockX = chunkX * CHUNK_SIZE + x;
-        const blockZ = chunkZ * CHUNK_SIZE + z;
-        const blockId = `${blockX},0,${blockZ}`;
-        const block = document.querySelector(`[identificador="${blockId}"]`);
-        if (block) {
-          block.parentNode.removeChild(block);
-        }
+
+    // Find all blocks in the chunk
+    const blocksInChunk = memoria.filter((block) => {
+      const blockChunkX = Math.floor(block.x / CHUNK_SIZE);
+      const blockChunkZ = Math.floor(block.z / CHUNK_SIZE);
+      return blockChunkX === chunkX && blockChunkZ === chunkZ;
+    });
+
+    // Remove blocks from the scene
+    blocksInChunk.forEach((block) => {
+      const blockId = `${block.x} ${block.y} ${block.z}`; // Match the identificador format
+      const blockElement = document.querySelector(`[identificador="${blockId}"]`);
+      if (blockElement) {
+        blockElement.parentNode.removeChild(blockElement);
+        console.log(`Removed block: ${blockId}`);
       }
-    }
+    });
+
+    console.log(`Unloaded ${blocksInChunk.length} blocks from chunk ${chunkKey}`);
   }
 }
 
+// Function to update chunks based on player position
 // Function to update chunks based on player position
 function updateChunks(playerPosition) {
   const playerChunk = getChunkCoordinates(playerPosition.x, playerPosition.z);
@@ -159,7 +178,6 @@ AFRAME.registerComponent("simple-gravity", {
 });
 
 // === 2) CREATE BLOCKS (NO static-body) ===
-// We will do left-click (button===0) to remove, right-click (button===2) to add
 function createBox(position, id, material) {
   const caja = document.createElement("a-box");
   caja.setAttribute("position", position);
@@ -168,7 +186,7 @@ function createBox(position, id, material) {
   caja.setAttribute("depth", "1");
   caja.setAttribute("height", "1");
   caja.setAttribute("width", "1");
-  caja.setAttribute("identificador", id);
+  caja.setAttribute("identificador", `${position}`); // Use position as the unique identifier
   caja.setAttribute("shadow", "cast: true; receive: true");
 
   // Single 'click' event, check which mouse button was used
@@ -182,8 +200,8 @@ function createBox(position, id, material) {
     if (mouseEvent.button === 0) {
       console.log("Left-click remove on:", caja);
       caja.parentNode.removeChild(caja);
-      // remove from memoria
-      memoria.splice(id, 1);
+      // Remove from memoria
+      memoria = memoria.filter((block) => block.id !== id);
       localStorage.setItem("memoria", JSON.stringify(memoria));
     }
     // RIGHT-CLICK -> create new block adjacent
@@ -219,6 +237,7 @@ function createBox(position, id, material) {
 
       // Store in memory
       memoria.push({
+        id: memoria.length,
         usuario: usuario,
         x: newPos.x,
         y: newPos.y,
@@ -233,13 +252,14 @@ function createBox(position, id, material) {
 }
 
 // Initialize memoria from localStorage or new
-if (localStorage.getItem("memoria") == null) {
+//if (localStorage.getItem("memoria") == null) {
   console.log("No hay memoria previa, cargo una nueva");
-  const gridSize = 35;
+  const gridSize = 5;
   for (let x = -gridSize; x <= gridSize; x++) {
     for (let z = -gridSize; z <= gridSize; z++) {
       for (let y = -4; y <= 0; y++) {
         memoria.push({
+          id: memoria.length,
           x: x,
           y: y,
           z: z,
@@ -248,17 +268,17 @@ if (localStorage.getItem("memoria") == null) {
       }
     }
   }
-} else {
+/*} else {
   console.log("Sí hay memoria previa, cargo la memoria existente");
   memoria = JSON.parse(localStorage.getItem("memoria"));
-}
+}*/
 
 // Save once
 localStorage.setItem("memoria", JSON.stringify(memoria));
 
 // Re-create blocks from memoria
 memoria.forEach(function (celda, index) {
-  createBox(`${celda.x} ${celda.y} ${celda.z}`, index, celda.mat);
+  createBox(`${celda.x} ${celda.y} ${celda.z}`, celda.id, celda.mat);
 });
 
 // === Pointer Lock & Instruction Overlay handling ===
