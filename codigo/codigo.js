@@ -3,6 +3,9 @@
   Gestiona las llamadas y el uso de Aframe.io en este proyecto
 */
 
+// === Global Parameters ===
+const BOX_SIZE = 0.2; // Define the size of the box (width, height, depth)
+
 let memoria = [];
 
 const sceneEl = document.querySelector("a-scene");
@@ -17,8 +20,8 @@ let loadedChunks = {};
 // Function to get chunk coordinates from world coordinates
 function getChunkCoordinates(x, z) {
   return {
-    x: Math.floor(x / CHUNK_SIZE),
-    z: Math.floor(z / CHUNK_SIZE),
+    x: Math.floor(x / (CHUNK_SIZE * BOX_SIZE)), // Adjust for BOX_SIZE
+    z: Math.floor(z / (CHUNK_SIZE * BOX_SIZE)), // Adjust for BOX_SIZE
   };
 }
 
@@ -39,7 +42,7 @@ function loadChunk(chunkX, chunkZ) {
     // If the chunk exists in memoria, restore it
     if (chunkBlocks.length > 0) {
       chunkBlocks.forEach((block) => {
-        createBox(`${block.x} ${block.y} ${block.z}`, block.id, block.mat);
+        createBox(`${block.x * BOX_SIZE} ${block.y * BOX_SIZE} ${block.z * BOX_SIZE}`, block.id, block.mat);
       });
     } else {
       // If the chunk doesn't exist in memoria, create new blocks
@@ -47,7 +50,7 @@ function loadChunk(chunkX, chunkZ) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
           const blockX = chunkX * CHUNK_SIZE + x;
           const blockZ = chunkZ * CHUNK_SIZE + z;
-          createBox(`${blockX} 0 ${blockZ}`, memoria.length, "white");
+          createBox(`${blockX * BOX_SIZE} 0 ${blockZ * BOX_SIZE}`, memoria.length, "white");
           memoria.push({
             id: memoria.length,
             x: blockX,
@@ -61,7 +64,6 @@ function loadChunk(chunkX, chunkZ) {
   }
 }
 
-// Function to unload a chunk
 // Function to unload a chunk
 function unloadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
@@ -78,7 +80,7 @@ function unloadChunk(chunkX, chunkZ) {
 
     // Remove blocks from the scene
     blocksInChunk.forEach((block) => {
-      const blockId = `${block.x} ${block.y} ${block.z}`; // Match the identificador format
+      const blockId = `${block.x * BOX_SIZE} ${block.y * BOX_SIZE} ${block.z * BOX_SIZE}`;
       const blockElement = document.querySelector(`[identificador="${blockId}"]`);
       if (blockElement) {
         blockElement.parentNode.removeChild(blockElement);
@@ -91,9 +93,9 @@ function unloadChunk(chunkX, chunkZ) {
 }
 
 // Function to update chunks based on player position
-// Function to update chunks based on player position
 function updateChunks(playerPosition) {
   const playerChunk = getChunkCoordinates(playerPosition.x, playerPosition.z);
+  console.log("Player Chunk:", playerChunk); // Debugging: Log player chunk
 
   // Load chunks within the load distance
   for (let dx = -LOAD_DISTANCE; dx <= LOAD_DISTANCE; dx++) {
@@ -141,6 +143,8 @@ AFRAME.registerComponent("simple-gravity", {
     const el = this.el;
     const pos = el.object3D.position;
 
+    console.log("Player Position:", pos); // Debugging: Log player position
+
     // Raycast to detect ground
     const origin = new THREE.Vector3(pos.x, pos.y, pos.z);
     this.raycaster.set(origin, this.direction);
@@ -183,9 +187,9 @@ function createBox(position, id, material) {
   caja.setAttribute("position", position);
   caja.setAttribute("mixin", "mat" + material);
   caja.setAttribute("class", "clickable");
-  caja.setAttribute("depth", "1");
-  caja.setAttribute("height", "1");
-  caja.setAttribute("width", "1");
+  caja.setAttribute("depth", BOX_SIZE); // Use BOX_SIZE for depth
+  caja.setAttribute("height", BOX_SIZE); // Use BOX_SIZE for height
+  caja.setAttribute("width", BOX_SIZE); // Use BOX_SIZE for width
   caja.setAttribute("identificador", `${position}`); // Use position as the unique identifier
   caja.setAttribute("shadow", "cast: true; receive: true");
 
@@ -219,14 +223,14 @@ function createBox(position, id, material) {
 
       // Move half a unit along the normal from the exact face contact
       // This ensures the new block is adjacent to the face clicked
-      normal.multiplyScalar(0.5);
+      normal.multiplyScalar(BOX_SIZE / 2); // Adjust for BOX_SIZE
       point.add(normal);
 
-      // Snap to integer grid
+      // Snap to grid based on BOX_SIZE
       const newPos = {
-        x: Math.round(point.x),
-        y: Math.round(point.y),
-        z: Math.round(point.z),
+        x: Math.round(point.x / BOX_SIZE) * BOX_SIZE,
+        y: Math.round(point.y / BOX_SIZE) * BOX_SIZE,
+        z: Math.round(point.z / BOX_SIZE) * BOX_SIZE,
       };
       const usuario = localStorage.getItem("siennausuario");
       // Create random material
@@ -239,9 +243,9 @@ function createBox(position, id, material) {
       memoria.push({
         id: memoria.length,
         usuario: usuario,
-        x: newPos.x,
-        y: newPos.y,
-        z: newPos.z,
+        x: newPos.x / BOX_SIZE, // Store grid position, not world position
+        y: newPos.y / BOX_SIZE,
+        z: newPos.z / BOX_SIZE,
         mat: newMat,
       });
       localStorage.setItem("memoria", JSON.stringify(memoria));
@@ -278,7 +282,7 @@ localStorage.setItem("memoria", JSON.stringify(memoria));
 
 // Re-create blocks from memoria
 memoria.forEach(function (celda, index) {
-  createBox(`${celda.x} ${celda.y} ${celda.z}`, celda.id, celda.mat);
+  createBox(`${celda.x * BOX_SIZE} ${celda.y * BOX_SIZE} ${celda.z * BOX_SIZE}`, celda.id, celda.mat);
 });
 
 // === Pointer Lock & Instruction Overlay handling ===
