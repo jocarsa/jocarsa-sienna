@@ -9,8 +9,8 @@
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
     <script src="lib/colores.js"></script>
 
-<script src="https://unpkg.com/aframe-postprocessing/dist/aframe-postprocessing.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/aframe-instanced-mesh@0.5.0/dist/aframe-instanced-mesh.min.js"></script>
 	
 	<script>
       window.addEventListener("contextmenu", function (e) {

@@ -4,8 +4,8 @@
 */
 
 // === Global Parameters ===
-const BOX_SIZE = 0.2; // Define the size of the box (width, height, depth)
-const SPHERE_RADIUS = 3; // Radius for the sphere of boxes
+const BOX_SIZE = 1; // Define the size of the box (width, height, depth)
+let SPHERE_RADIUS = 3; // Radius for the sphere of boxes (can be adjusted dynamically)
 const GAUSSIAN_SIGMA = 1; // Standard deviation for Gaussian distribution
 
 let memoria = [];
@@ -18,6 +18,42 @@ const playerEl = document.querySelector("#player");
 const CHUNK_SIZE = 8; // Size of each chunk (16x16 blocks)
 const LOAD_DISTANCE = 2; // Number of chunks to load around the player
 let loadedChunks = {};
+
+// === Target Circle for Sphere Radius ===
+const targetCircle = document.createElement("div");
+targetCircle.style.position = "absolute";
+targetCircle.style.top = "50%";
+targetCircle.style.left = "50%";
+targetCircle.style.transform = "translate(-50%, -50%)";
+targetCircle.style.border = "2px solid white";
+targetCircle.style.borderRadius = "50%";
+targetCircle.style.pointerEvents = "none"; // Ensure it doesn't block clicks
+document.body.appendChild(targetCircle);
+
+// Function to update the target circle size
+function updateTargetCircle() {
+  const circleSize = SPHERE_RADIUS * 200; // Scale the circle size for visibility
+  targetCircle.style.width = `${circleSize}px`;
+  targetCircle.style.height = `${circleSize}px`;
+}
+
+// Initialize the target circle
+updateTargetCircle();
+
+// === Event Listeners for Keypad + and Keypad - ===
+document.addEventListener("keydown", (event) => {
+  if (event.key === "+" || event.key === "Add") {
+    // Increase sphere radius
+    SPHERE_RADIUS = Math.min(SPHERE_RADIUS + 1, 10); // Max radius of 10
+    updateTargetCircle();
+
+  } else if (event.key === "-" || event.key === "Subtract") {
+    // Decrease sphere radius
+    SPHERE_RADIUS = Math.max(SPHERE_RADIUS - 1, 1); // Min radius of 1
+    updateTargetCircle();
+
+  }
+});
 
 // Function to get chunk coordinates from world coordinates
 function getChunkCoordinates(x, z) {
@@ -32,7 +68,7 @@ function loadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
   if (!loadedChunks[chunkKey]) {
     loadedChunks[chunkKey] = true;
-    console.log(`Loading chunk: ${chunkKey}`);
+
 
     // Check if the chunk exists in memoria
     const chunkBlocks = memoria.filter((block) => {
@@ -71,7 +107,7 @@ function unloadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
   if (loadedChunks[chunkKey]) {
     loadedChunks[chunkKey] = false;
-    console.log(`Unloading chunk: ${chunkKey}`);
+
 
     // Find all blocks in the chunk
     const blocksInChunk = memoria.filter((block) => {
@@ -86,18 +122,18 @@ function unloadChunk(chunkX, chunkZ) {
       const blockElement = document.querySelector(`[identificador="${blockId}"]`);
       if (blockElement) {
         blockElement.parentNode.removeChild(blockElement);
-        console.log(`Removed block: ${blockId}`);
+
       }
     });
 
-    console.log(`Unloaded ${blocksInChunk.length} blocks from chunk ${chunkKey}`);
+
   }
 }
 
 // Function to update chunks based on player position
 function updateChunks(playerPosition) {
   const playerChunk = getChunkCoordinates(playerPosition.x, playerPosition.z);
-  console.log("Player Chunk:", playerChunk); // Debugging: Log player chunk
+
 
   // Load chunks within the load distance
   for (let dx = -LOAD_DISTANCE; dx <= LOAD_DISTANCE; dx++) {
@@ -151,7 +187,7 @@ AFRAME.registerComponent("simple-gravity", {
     const el = this.el;
     const pos = el.object3D.position;
 
-    console.log("Player Position:", pos); // Debugging: Log player position
+
 
     // Raycast to detect ground
     const origin = new THREE.Vector3(pos.x, pos.y, pos.z);
@@ -205,20 +241,20 @@ function createBox(position, id, material) {
   caja.addEventListener("click", function (evt) {
     // Must have pointerEvent to see which button was pressed
     const mouseEvent = evt.detail.mouseEvent;
-    console.log(evt);
+
     if (!mouseEvent) return;
 
     // LEFT-CLICK -> remove block
     if (mouseEvent.button === 0) {
-      console.log("Left-click remove on:", caja);
+
       removeSphereOfBoxes(evt.detail.intersection.point);
     }
     // RIGHT-CLICK -> create new block adjacent
     else if (mouseEvent.button === 2) {
-      console.log("El material activo es:", repositorioactivo);
-      console.log(elementos[repositorioactivo].style.background);
 
-      console.log("Right-click add block near:", caja);
+
+
+
       createSphereOfBoxes(evt.detail.intersection.point, elementos[repositorioactivo].style.background);
     }
   });
@@ -283,7 +319,7 @@ function removeSphereOfBoxes(centerPoint) {
         const blockElement = document.querySelector(`[identificador="${blockId}"]`);
         if (blockElement) {
           blockElement.parentNode.removeChild(blockElement);
-          console.log(`Removed block: ${blockId}`);
+
 
           // Remove from memoria
           memoria = memoria.filter((block) => {
@@ -298,8 +334,8 @@ function removeSphereOfBoxes(centerPoint) {
 }
 
 // Initialize memoria from localStorage or new
-//if (localStorage.getItem("memoria") == null) {
-  console.log("No hay memoria previa, cargo una nueva");
+if (localStorage.getItem("memoria") == null) {
+
   const gridSize = 5;
   for (let x = -gridSize; x <= gridSize; x++) {
     for (let z = -gridSize; z <= gridSize; z++) {
@@ -314,10 +350,10 @@ function removeSphereOfBoxes(centerPoint) {
       }
     }
   }
-/*} else {
+} else {
   console.log("Sí hay memoria previa, cargo la memoria existente");
   memoria = JSON.parse(localStorage.getItem("memoria"));
-}*/
+}
 
 // Save once
 localStorage.setItem("memoria", JSON.stringify(memoria));
@@ -335,9 +371,9 @@ playerEl.addEventListener("click", function () {
 // Listen for pointerlockchange
 document.addEventListener("pointerlockchange", function () {
   if (document.pointerLockElement === sceneEl.canvas) {
-    console.log("Pointer Lock Engaged");
+
   } else {
-    console.log("Pointer Lock Disengaged");
+
     instructionEl.classList.remove("hidden");
   }
 });
