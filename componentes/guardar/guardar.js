@@ -31,3 +31,93 @@ document.querySelector("#guardar").onclick = function(){
 				 console.error('Error:', error);
 			});
 		}
+		
+		// === Save memoria to Disk ===
+document.querySelector("#saveToDisk").onclick = function () {
+  const dataStr = JSON.stringify(memoria);
+  const dataBlob = new Blob([dataStr], { type: "application/json" });
+  const url = URL.createObjectURL(dataBlob);
+
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "memoria.json";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+};
+
+// === Load memoria from Disk ===
+document.querySelector("#loadFromDisk").onclick = function () {
+  const input = document.createElement("input");
+  input.type = "file";
+  input.accept = "application/json";
+  input.onchange = function (event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const content = e.target.result;
+      try {
+        const newMemoria = JSON.parse(content);
+
+        // Clear the current scene
+        document.querySelectorAll(".clickable").forEach((el) => el.remove());
+
+        // Update memoria and localStorage
+        memoria = newMemoria;
+        localStorage.setItem("memoria", JSON.stringify(memoria));
+
+        // Recreate blocks from the new memoria
+        memoria.forEach(function (celda, index) {
+          createBox(
+            `${celda.x * BOX_SIZE} ${celda.y * BOX_SIZE} ${celda.z * BOX_SIZE}`,
+            celda.id,
+            celda.mat
+          );
+        });
+      } catch (error) {
+        console.error("Error parsing JSON file:", error);
+        alert("Invalid JSON file.");
+      }
+    };
+    reader.readAsText(file);
+  };
+  input.click();
+};
+
+// === Clean Start ===
+document.querySelector("#cleanStart").onclick = function () {
+  // Clear the current scene
+  document.querySelectorAll(".clickable").forEach((el) => el.remove());
+
+  // Reset memoria to a small 4x4 island
+  memoria = [];
+  const gridSize = 2; // 4x4 island
+  for (let x = -gridSize; x <= gridSize; x++) {
+    for (let z = -gridSize; z <= gridSize; z++) {
+      for (let y = -4; y <= 0; y++) {
+        memoria.push({
+          id: memoria.length,
+          x: x,
+          y: y,
+          z: z,
+          mat: css3Colors[Math.round(Math.random() * css3Colors.length)],
+        });
+      }
+    }
+  }
+
+  // Update localStorage
+  localStorage.setItem("memoria", JSON.stringify(memoria));
+
+  // Recreate blocks from the new memoria
+  memoria.forEach(function (celda, index) {
+    createBox(
+      `${celda.x * BOX_SIZE} ${celda.y * BOX_SIZE} ${celda.z * BOX_SIZE}`,
+      celda.id,
+      celda.mat
+    );
+  });
+};

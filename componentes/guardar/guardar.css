@@ -8,3 +8,23 @@
       	padding:10px;
       	z-index:1000;
       }
+     #guardar, #saveToDisk, #loadFromDisk, #cleanStart {
+  position: absolute;
+  right: 20px;
+  top: 20px;
+  padding: 10px;
+  z-index: 1000;
+  margin-right: 100px; /* Adjust spacing */
+}
+
+#saveToDisk {
+  margin-right: 220px;
+}
+
+#loadFromDisk {
+  margin-right: 340px;
+}
+
+#cleanStart {
+  margin-right: 460px;
+}
