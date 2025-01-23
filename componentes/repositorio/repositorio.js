@@ -19,4 +19,6 @@ var elementos = document.querySelectorAll("#repositorio .elemento")	// Seleccion
     			repositorioactivo = elementos.length-1;															// Vuelve a aparecer por la izquierda
     		}
     		elementos[repositorioactivo].classList.add("activo")						// Al elemento activo le pongo la clase correspondiente
+    		
+    		document.querySelector("#repositorio #contenedor").style.top = -Math.floor(repositorioactivo/28)*54+"px"
     	})
