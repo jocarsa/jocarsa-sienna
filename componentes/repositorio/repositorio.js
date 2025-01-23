@@ -1,7 +1,9 @@
-let repositorioactivo = 0;
+var repositorioactivo = 0;
+var elementos = document.querySelectorAll("#repositorio .elemento")	// Selecciono los elementos	
+    	
     	document.addEventListener("wheel",function(event){									// Cuando toque la rueda
     		console.log(event)
-    		let elementos = document.querySelectorAll("#repositorio .elemento")	// Selecciono los elementos
+    		
     		elementos.forEach(function(elemento){											// Y para cada uno de ellos
     			elemento.classList.remove("activo")											// Les quito a todos la clase activo
     		})

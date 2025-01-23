@@ -25,16 +25,32 @@
     <a-scene shadow="type: pcfsoft" physics="gravity: -9.8;" >
       <a-assets>
         <a-mixin
-          id="material1"
+          id="matred"
           material="src: img/bloque.jpg; color: #ffcccc;"
         ></a-mixin>
         <a-mixin
-          id="material2"
+          id="matgreen"
           material="src: img/bloque.jpg; color: #ccffcc;"
         ></a-mixin>
         <a-mixin
-          id="material3"
+          id="matblue"
           material="src: img/bloque.jpg; color: #ccccff;"
+        ></a-mixin>
+        <a-mixin
+          id="matmagenta"
+          material="src: img/bloque.jpg; color: magenta;"
+        ></a-mixin>
+        <a-mixin
+          id="matcyan"
+          material="src: img/bloque.jpg; color: cyan;"
+        ></a-mixin>
+        <a-mixin
+          id="matyellow"
+          material="src: img/bloque.jpg; color: yellow;"
+        ></a-mixin>
+        <a-mixin
+          id="matorange"
+          material="src: img/bloque.jpg; color: orange;"
         ></a-mixin>
       </a-assets>
 

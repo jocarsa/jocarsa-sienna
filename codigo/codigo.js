@@ -70,7 +70,7 @@
 	function createBox(position, id, material) {
 	  const caja = document.createElement("a-box");
 	  caja.setAttribute("position", position);
-	  caja.setAttribute("mixin", "material" + material);
+	  caja.setAttribute("mixin", "mat" + material);
 	  caja.setAttribute("class", "clickable");
 	  caja.setAttribute("depth", "1");
 	  caja.setAttribute("height", "1");
@@ -95,6 +95,9 @@
 		 }
 		 // RIGHT-CLICK -> create new block adjacent
 		 else if (mouseEvent.button === 2) {
+		 	console.log("El material activo es:",repositorioactivo);
+		 	console.log(elementos[repositorioactivo].style.background)
+		 	
 		   console.log("Right-click add block near:", caja);
 		   const intersection = evt.detail.intersection;
 		   if (!intersection) return;
@@ -114,9 +117,9 @@
 		     y: Math.round(point.y),
 		     z: Math.round(point.z)
 		   };
-
+			const usuario = localStorage.getItem("siennausuario")
 		   // Create random material
-		   const newMat = Math.ceil(Math.random() * 3);
+		   const newMat = elementos[repositorioactivo].style.background;
 
 		   // Actually create & add
 		   createBox(
@@ -127,6 +130,7 @@
 
 		   // Store in memory
 		   memoria.push({
+		   	usuario:usuario,
 		     x: newPos.x,
 		     y: newPos.y,
 		     z: newPos.z,
