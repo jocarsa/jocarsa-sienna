@@ -13,5 +13,8 @@ let repositorioactivo = 0;
     		if(repositorioactivo >= elementos.length){									// Si el cursor se me sale por la derecha
     			repositorioactivo = 0;															// Vuelve a aparecer por la izquierda
     		}
+    		if(repositorioactivo < 0){														// Si el cursor se me sale por la derecha
+    			repositorioactivo = elementos.length-1;															// Vuelve a aparecer por la izquierda
+    		}
     		elementos[repositorioactivo].classList.add("activo")						// Al elemento activo le pongo la clase correspondiente
     	})
