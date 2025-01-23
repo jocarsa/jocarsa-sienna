@@ -7,7 +7,12 @@
     <meta charset="UTF-8" />
     <title>jocarsa | sienna</title>
     <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
-
+	
+	<script>
+      window.addEventListener("contextmenu", function (e) {
+        e.preventDefault();
+      });
+    </script>
     
     <style>
     	<?php include "estilo/estilo.css"?>
@@ -17,7 +22,7 @@
     <div id="instruction">Click to enter VR / Engage Pointer Lock</div>
     <?php include "componentes/login/login.php"; ?>
 	 
-    <a-scene shadow="type: pcfsoft" physics="gravity: -9.8;">
+    <a-scene shadow="type: pcfsoft" physics="gravity: -9.8;" >
       <a-assets>
         <a-mixin
           id="material1"
@@ -49,7 +54,7 @@
         id="player"
         position="0 1 0"
         wasd-controls
-        look-controls
+        look-controls="pointerLockEnabled: true"
         simple-gravity
       >
         <a-entity id="camera" camera>
