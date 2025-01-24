@@ -49,7 +49,7 @@ document.addEventListener("keydown", (event) => {
 
   } else if (event.key === "-" || event.key === "Subtract") {
     // Decrease sphere radius
-    SPHERE_RADIUS = Math.max(SPHERE_RADIUS - 1, 1); // Min radius of 1
+    SPHERE_RADIUS = Math.max(SPHERE_RADIUS - 1, 0); // Min radius of 1
     updateTargetCircle();
 
   }

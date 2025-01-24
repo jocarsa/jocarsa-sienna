@@ -11,7 +11,8 @@
 
 
 <script src="https://cdn.jsdelivr.net/npm/aframe-instanced-mesh@0.5.0/dist/aframe-instanced-mesh.min.js"></script>
-	
+	    <script src="https://unpkg.com/aframe-postprocessing-component@2.1.1/dist/aframe-postprocessing-component.min.js"></script>
+
 	<script>
       window.addEventListener("contextmenu", function (e) {
         e.preventDefault();
@@ -70,6 +71,7 @@
         simple-gravity
       >
         <a-entity id="camera" camera>
+        <a-entity dof="focalLength: 5; fStop: 0.1; focusDistance: 2"></a-entity>
           <a-cursor
             id="cursor"
             fuse="false"
