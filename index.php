@@ -48,7 +48,7 @@
         
        
 			 <img id="cielo" src="img/cielo.jpg">
-		 
+		 <a-asset-item id="alienModel" src="models/alien.glb"></a-asset-item>
       </a-assets>
 
 
