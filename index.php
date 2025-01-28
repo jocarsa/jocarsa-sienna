@@ -26,7 +26,8 @@
   <body>
     <div id="instruction">Click para entrar en el juego</div>
     <?php include "componentes/login/login.php"; ?>
-	 
+	   
+		
     <a-scene 
     shadow="type: pcfsoft" 
     physics="gravity: -9.8;"  
@@ -48,7 +49,7 @@
         
        
 			 <img id="cielo" src="img/cielo.jpg">
-		 <a-asset-item id="alienModel" src="models/alien.glb"></a-asset-item>
+
       </a-assets>
 
 
@@ -82,12 +83,14 @@
         </a-entity>
       </a-entity>
     </a-scene>
+<?php include "componentes/guardar/guardar.php"; ?>
     <script>
     	<?php include "codigo/codigo.js"; ?>
     </script>
-    <?php include "componentes/guardar/guardar.php"; ?>
+    
     
     <?php include "componentes/repositorio/repositorio.php"; ?>
+       
   </body>
 </html>
 

@@ -3,20 +3,22 @@
   Gestiona las llamadas y el uso de Aframe.io en este proyecto
 */
 
-// === Global Parameters ===
 const BOX_SIZE = 1; // Define the size of each box
 let SPHERE_RADIUS = 3; // Sphere radius used when adding/removing blocks
 const GAUSSIAN_SIGMA = 1; // Standard deviation for Gaussian distribution
 
 let memoria = [];
 
+// === For loading user GLB ===
+let userModelUrl = null; // Will store the blob URL after file upload
+
 const sceneEl = document.querySelector("a-scene");
 const instructionEl = document.getElementById("instruction");
 const playerEl = document.querySelector("#player");
 
 // === Chunk Management ===
-const CHUNK_SIZE = 8;      // Each chunk is 8 x 8 blocks
-const LOAD_DISTANCE = 2;   // How many chunks around the player to load
+const CHUNK_SIZE = 8;     // Each chunk is 8 x 8 blocks
+const LOAD_DISTANCE = 2;  // How many chunks around the player to load
 let loadedChunks = {};
 
 // === Target Circle for Sphere Radius ===
@@ -32,7 +34,7 @@ document.body.appendChild(targetCircle);
 
 /** Updates the "visual circle" on screen that shows SPHERE_RADIUS */
 function updateTargetCircle() {
-  const circleSize = SPHERE_RADIUS * 200; // Arbitrary scale
+  const circleSize = SPHERE_RADIUS * 200; // Arbitrary scale for display
   targetCircle.style.width = `${circleSize}px`;
   targetCircle.style.height = `${circleSize}px`;
 }
@@ -51,7 +53,7 @@ document.addEventListener("keydown", (event) => {
   }
 });
 
-// Helper: convert world (x, z) to chunk coords
+// === Convert world (x, z) to chunk coords ===
 function getChunkCoordinates(x, z) {
   return {
     x: Math.floor(x / (CHUNK_SIZE * BOX_SIZE)),
@@ -59,7 +61,7 @@ function getChunkCoordinates(x, z) {
   };
 }
 
-// Load a chunk if not already loaded
+// === Load a chunk if not already loaded ===
 function loadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
   if (!loadedChunks[chunkKey]) {
@@ -82,7 +84,7 @@ function loadChunk(chunkX, chunkZ) {
         );
       });
     } else {
-      // Otherwise, create a new "flat" chunk (or however you want to generate it)
+      // Otherwise, create a new "flat" chunk (or any generation logic you like)
       for (let x = 0; x < CHUNK_SIZE; x++) {
         for (let z = 0; z < CHUNK_SIZE; z++) {
           const blockX = chunkX * CHUNK_SIZE + x;
@@ -101,7 +103,7 @@ function loadChunk(chunkX, chunkZ) {
   }
 }
 
-// Unload a chunk if it's too far from the player
+// === Unload a chunk if it's too far from the player ===
 function unloadChunk(chunkX, chunkZ) {
   const chunkKey = `${chunkX},${chunkZ}`;
   if (loadedChunks[chunkKey]) {
@@ -125,7 +127,7 @@ function unloadChunk(chunkX, chunkZ) {
   }
 }
 
-// Called every frame (via the simple-gravity component) to ensure needed chunks are loaded/unloaded
+// === Called every frame to ensure needed chunks are loaded/unloaded ===
 function updateChunks(playerPosition) {
   const playerChunk = getChunkCoordinates(playerPosition.x, playerPosition.z);
 
@@ -192,13 +194,13 @@ AFRAME.registerComponent("simple-gravity", {
       groundDist = intersects[0].distance;
     }
 
-    // Snap if close enough
+    // Snap if close enough to ground
     if (groundDist < this.data.groundThreshold && groundDist !== 0) {
       this.isGrounded = true;
       this.velocityY = 0;
       this.targetY = pos.y - groundDist + this.data.groundThreshold;
     } else {
-      // Gravity
+      // Apply gravity
       this.isGrounded = false;
       this.velocityY += this.data.gravity * delta;
       this.targetY += this.velocityY * delta;
@@ -216,7 +218,7 @@ AFRAME.registerComponent("simple-gravity", {
 function createBox(position, id, material) {
   const caja = document.createElement("a-box");
   caja.setAttribute("position", position);
-  caja.setAttribute("mixin", "mat" + material);
+  caja.setAttribute("mixin", "mat" + material);  // e.g. "matblue"
   caja.setAttribute("class", "clickable");
   caja.setAttribute("depth", BOX_SIZE);
   caja.setAttribute("height", BOX_SIZE);
@@ -235,8 +237,7 @@ function createBox(position, id, material) {
     }
     // RIGHT-CLICK => add sphere of blocks
     else if (mouseEvent.button === 2) {
-      // Example: We always create 'blue' blocks. 
-      // In your code, you may use your repositorioactivo color, etc.
+      // Example: Use the currently active color or set "blue" as default
       createSphereOfBoxes(evt.detail.intersection.point, "blue");
     }
   });
@@ -260,10 +261,9 @@ function createSphereOfBoxes(centerPoint, material) {
 
         const blockId = `${newPos.x} ${newPos.y} ${newPos.z}`;
         const existingBlock = document.querySelector(`[identificador="${blockId}"]`);
-        if (existingBlock) continue;
+        if (existingBlock) continue; // Skip if there's already a block
 
         createBox(blockId, memoria.length, material);
-
         memoria.push({
           id: memoria.length,
           x: newPos.x / BOX_SIZE,
@@ -320,7 +320,7 @@ if (localStorage.getItem("memoria") == null) {
           x: x,
           y: y,
           z: z,
-          // Pick random color from your 'css3Colors' array (as in your original code)
+          // Use random color from a big color array (css3Colors)
           mat: css3Colors[Math.floor(Math.random() * css3Colors.length)],
         });
       }
@@ -332,7 +332,7 @@ if (localStorage.getItem("memoria") == null) {
 }
 localStorage.setItem("memoria", JSON.stringify(memoria));
 
-// Recreate blocks
+// Recreate blocks from memoria
 memoria.forEach(function (celda) {
   createBox(
     `${celda.x * BOX_SIZE} ${celda.y * BOX_SIZE} ${celda.z * BOX_SIZE}`,
@@ -341,30 +341,48 @@ memoria.forEach(function (celda) {
   );
 });
 
-// ==========================
-// = SPAWN RANDOM ALIENS    =
-// ==========================
-function spawnRandomAliens() {
-  // Decide how many aliens to spawn, e.g. between 5 and 10
-  const count = Math.floor(Math.random() * 6) + 5; // 5..10
-  for (let i = 0; i < count; i++) {
-    // Pick random coordinates in some range
-    const x = Math.floor(Math.random() * 50) - 25; // -25..25
-    const z = Math.floor(Math.random() * 50) - 25; // -25..25
-    const y = 1;  // Slightly above the ground
+/*
+  =============== FILE UPLOADER FOR GLB MODELS ===============
+  Let the user upload a GLB model, store it in userModelUrl
+*/
+document.getElementById('glbUploader').addEventListener('change', function (e) {
+  const file = e.target.files[0];
+  if (!file) return;
 
-    // Create the alien entity
+  // Convert file to a blob: URL
+  userModelUrl = URL.createObjectURL(file);
+  console.log("New model URL:", userModelUrl);
+
+  // Automatically spawn some random copies:
+  spawnRandomAliens();  
+});
+
+/*
+  =============== SPAWN RANDOM MODELS (the uploaded GLB) ===============
+*/
+function spawnRandomAliens() {
+  if (!userModelUrl) {
+    console.log("No .glb file uploaded yet!");
+    return;
+  }
+
+  // Decide how many to spawn, e.g. 5..10
+  const count = Math.floor(Math.random() * 6) + 5;
+  for (let i = 0; i < count; i++) {
+    // Random position
+    const x = Math.floor(Math.random() * 50) - 25;
+    const z = Math.floor(Math.random() * 50) - 25;
+    const y = 1;
+
     const alienEl = document.createElement("a-entity");
-    alienEl.setAttribute("gltf-model", "#alienModel");
+    alienEl.setAttribute("gltf-model", `url(${userModelUrl})`);
     alienEl.setAttribute("position", `${x} ${y} ${z}`);
-    alienEl.setAttribute("scale", "0.5 0.5 0.5");  // adjust as needed
-    alienEl.setAttribute("animation-mixer", "");   // if your GLB has animations
+    alienEl.setAttribute("scale", "0.5 0.5 0.5");
+    alienEl.setAttribute("animation-mixer", ""); // If your GLB has animations
 
     sceneEl.appendChild(alienEl);
   }
 }
-// Call this function once after blocks are set up
-spawnRandomAliens();
 
 // === Pointer Lock & Instruction Overlay ===
 playerEl.addEventListener("click", function () {
